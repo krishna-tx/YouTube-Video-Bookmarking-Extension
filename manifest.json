@@ -1,17 +1,15 @@
 {
     "manifest_version": 3,
-    "name": "Test Extension",
-    "description": "dummy",
+    "name": "YouTube Video Bookmarker",
+    "description": "Extension that allows user to add bookmarks to YouTube videos.",
     "version": "1.0",
-    "permissions": ["tabs"],
+    "permissions": ["tabs", "scripting"],
+    "host_permissions": ["https://www.youtube.com/watch*"],
     "action":{
         "default_popup": "popup.html",
         "default_title": "Youtube Video Bookmarker"
+    },
+    "background": {
+        "service_worker": "background.js"
     }
-    // "content_scripts": [
-    //     {
-    //         "matches": ["https://www.youtube.com/watch*"],
-    //         "js": ["contentScript.js"]
-    //     }
-    // ]
 }
