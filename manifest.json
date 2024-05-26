@@ -1,0 +1,17 @@
+{
+    "manifest_version": 3,
+    "name": "Test Extension",
+    "description": "dummy",
+    "version": "1.0",
+    "permissions": ["tabs"],
+    "action":{
+        "default_popup": "popup.html",
+        "default_title": "Youtube Video Bookmarker"
+    }
+    // "content_scripts": [
+    //     {
+    //         "matches": ["https://www.youtube.com/watch*"],
+    //         "js": ["contentScript.js"]
+    //     }
+    // ]
+}
