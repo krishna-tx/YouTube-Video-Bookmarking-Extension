@@ -3,7 +3,25 @@ function bookmarkButtonClicked() {
         const currTab = tabs[0];
         await chrome.tabs.sendMessage(
             currTab.id,
-            currTab
+            {
+                "tab": currTab,
+                "text": "bookmarkButtonClicked"
+            }
+        );
+    });
+}
+
+function movePlayer() {
+    const bookmarkTime = this.textContent;
+    chrome.tabs.query({currentWindow: true, active: true}, async function(tabs) {
+        const currTab = tabs[0];
+        await chrome.tabs.sendMessage(
+            currTab.id,
+            {
+                "tab": currTab,
+                "text": "movePlayer",
+                "bookmarkTime": bookmarkTime
+            }
         );
     });
 }
@@ -31,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const bookmark = document.createElement("div");
                         bookmark.classList.add("bookmark");
                         bookmark.textContent = bookmarks[i];
+                        bookmark.addEventListener("click", movePlayer);
                         bookmarksContainer.append(bookmark);
                     }
                 }
