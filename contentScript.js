@@ -14,9 +14,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                 bookmarks = JSON.parse(result[videoId]);
             }
         });
-    
-        bookmarks.push(Math.round(youtubePlayer.currentTime));
 
+        bookmarks.push(Math.floor(youtubePlayer.currentTime));
         bookmarks.sort((x, y) => {
             return x-y;
         });
@@ -32,8 +31,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         // await chrome.storage.sync.clear();
     }
     else if(text == "movePlayer") {
-        const bookmarkTime = message["bookmarkTime"];
-        youtubePlayer.currentTime = bookmarkTime;
+        const currentTime = message["currentTime"];
+        youtubePlayer.currentTime = currentTime;
     }
     return true;
 });
