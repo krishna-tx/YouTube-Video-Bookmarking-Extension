@@ -1,3 +1,6 @@
+const youtubeURL = "https://www.youtube.com/watch";
+let videoId;
+
 function bookmarkButtonClicked() {
     chrome.tabs.query({currentWindow: true, active: true}, async function(tabs) {
         const currTab = tabs[0];
@@ -11,56 +14,113 @@ function bookmarkButtonClicked() {
     });
 }
 
-function movePlayer() {
-    const currentTime = this.getAttribute("currentTime");
+function playBookmark() {
+    const currentTime = this.parentNode.getAttribute("currentTime");
     chrome.tabs.query({currentWindow: true, active: true}, async function(tabs) {
         const currTab = tabs[0];
         await chrome.tabs.sendMessage(
             currTab.id,
             {
                 "tab": currTab,
-                "text": "movePlayer",
+                "text": "playBookmark",
                 "currentTime": currentTime
             }
         );
     });
 }
 
-function formatTime(time) {
-    const hours = Math.floor(time / 3600);
-    const remainder = time % 3600;
-    const minutes = Math.floor(remainder / 60);
-    const seconds = remainder % 60;
-
-    let formattedTime = "";
-    if(hours > 0) {
-        formattedTime += hours + ":";
-    }
-    if(minutes == 0) {
-        if(hours > 0) { formattedTime += "00"; }
-        else { formattedTime += "0"; }
-    }
-    else if(minutes < 10) {
-        if(hours > 0) { formattedTime += "0" + minutes; }
-        else { formattedTime += minutes; }
-    }
-    else {
-        formattedTime += minutes;
-    }
-    formattedTime += ":";
-    if(seconds == 0) {
-        formattedTime += "00";
-    }
-    else if(seconds < 10) {
-        formattedTime += "0" + seconds;
-    }
-    else {
-        formattedTime += seconds;
-    }
-    return formattedTime;
+function deleteBookmark() {
+    const currentTime = this.parentNode.getAttribute("currentTime");
+    chrome.tabs.query({currentWindow: true, active: true}, async function(tabs) {
+        const currTab = tabs[0];
+        await chrome.tabs.sendMessage(
+            currTab.id,
+            {
+                "tab": currTab,
+                "text": "deleteBookmark",
+                "currentTime": currentTime
+            }
+        );
+    });
 }
 
-const youtubeURL = "https://www.youtube.com/watch";
+async function loadBookmarks() {
+    await chrome.storage.sync.get([videoId]).then((result) => {
+        if(result[videoId]) {
+            const bookmarks = result[videoId];
+            const bookmarksContainer = document.getElementById("bookmarks-container");
+            bookmarksContainer.replaceChildren(); // remove all children of element
+            for(const bookmarkTime in bookmarks) {
+                const bookmark = document.createElement("div");
+                bookmark.classList.add("bookmark");
+                bookmark.setAttribute("currentTime", bookmarkTime);
+                
+                const textBox = document.createElement("input");
+                textBox.value = bookmarks[bookmarkTime];
+                // textBox.addEventListener("keyup", async ({key}) => {
+                //     if(key == "Enter") {
+                //         let bookmarks = {};
+    
+                //         await chrome.storage.sync.get([videoId]).then((result) => {
+                //             if(result[videoId]) {
+                //                 bookmarks = result[videoId];
+                //             }
+                //         });
+                        
+                //         bookmarks[bookmarkTime] = textBox.value;
+
+                //         jsonFile = {};
+                //         jsonFile[videoId] = bookmarks;
+                //         await chrome.storage.sync.set(jsonFile);
+                //     }
+                // });
+                textBox.addEventListener("input", async () => {
+                    let bookmarks = {};
+    
+                    await chrome.storage.sync.get([videoId]).then((result) => {
+                        if(result[videoId]) {
+                            bookmarks = result[videoId];
+                        }
+                    });
+                    
+                    bookmarks[bookmarkTime] = textBox.value;
+
+                    jsonFile = {};
+                    jsonFile[videoId] = bookmarks;
+                    await chrome.storage.sync.set(jsonFile);
+                });
+
+                // const playButton = document.createElement("button");
+                const playButton = document.createElement("img");
+                // playButton.textContent = "Play";
+                playButton.src = "images/play.png";
+                playButton.style.width = "25px";
+                playButton.style.height = "25px";
+                playButton.addEventListener("click", playBookmark);
+
+                // const deleteButton = document.createElement("button");
+                const deleteButton = document.createElement("img");
+                // deleteButton.textContent = "Delete";
+                deleteButton.src = "images/delete.svg";
+                deleteButton.style.width = "25px";
+                deleteButton.style.height = "25px";
+                deleteButton.addEventListener("click", deleteBookmark);
+
+                bookmark.appendChild(textBox);
+                bookmark.appendChild(playButton);
+                bookmark.appendChild(deleteButton);
+                bookmarksContainer.append(bookmark);
+            }
+        }
+    });
+}
+
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    if(message["text"] == "refreshBookmarks") {
+        loadBookmarks();
+    }
+    return true;
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     chrome.tabs.query({currentWindow: true, active: true}, async function(tabs) {
@@ -68,27 +128,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const bookmarkButton = document.getElementById("bookmark-button");
         if(currTab.url.includes(youtubeURL)) { // send message to service worker
             await chrome.runtime.sendMessage(
-                currTab
+                {
+                    "tab": currTab,
+                    "text": "injectContentScript"
+                }
             );
             bookmarkButton.addEventListener("click", bookmarkButtonClicked);
 
             // load bookmarks
-            const url = currTab.url;
-            const videoId = url.split("?")[1];
-            await chrome.storage.sync.get([videoId]).then((result) => {
-                if(result[videoId]) {
-                    const bookmarks = JSON.parse(result[videoId]);
-                    const bookmarksContainer = document.getElementById("bookmarks-container");
-                    for(let i = 0; i < bookmarks.length; i++) {
-                        const bookmark = document.createElement("div");
-                        bookmark.classList.add("bookmark");
-                        bookmark.setAttribute("currentTime", bookmarks[i]);
-                        bookmark.textContent = formatTime(Number(bookmarks[i]));
-                        bookmark.addEventListener("click", movePlayer);
-                        bookmarksContainer.append(bookmark);
-                    }
-                }
-            });
+            const url = currTab.url.split("?")[1];
+            videoId = url.split("&")[0];
+            loadBookmarks();
         }
         else {
             // hid bookmark button

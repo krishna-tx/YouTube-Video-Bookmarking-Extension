@@ -6,3 +6,23 @@ body {
 h1 {
     font-size: 18px;
 }
+
+.bookmark {
+    margin: 4px;
+    display: flex;
+    gap: 25px;
+}
+
+input {
+    text-align: center;
+}
+
+img {
+    cursor: pointer;
+}
+
+button {
+    border-radius: 5px;
+    cursor: pointer;
+}
+
