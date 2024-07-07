@@ -57,51 +57,33 @@ async function loadBookmarks() {
                 
                 const textBox = document.createElement("input");
                 textBox.value = bookmarks[bookmarkTime];
-                // textBox.addEventListener("keyup", async ({key}) => {
-                //     if(key == "Enter") {
-                //         let bookmarks = {};
+
+                textBox.addEventListener("keyup", async ({key}) => {
+                    if(key == "Enter") {
+                        let bookmarks = {};
     
-                //         await chrome.storage.sync.get([videoId]).then((result) => {
-                //             if(result[videoId]) {
-                //                 bookmarks = result[videoId];
-                //             }
-                //         });
+                        await chrome.storage.sync.get([videoId]).then((result) => {
+                            if(result[videoId]) {
+                                bookmarks = result[videoId];
+                            }
+                        });
                         
-                //         bookmarks[bookmarkTime] = textBox.value;
-
-                //         jsonFile = {};
-                //         jsonFile[videoId] = bookmarks;
-                //         await chrome.storage.sync.set(jsonFile);
-                //     }
-                // });
-                textBox.addEventListener("input", async () => {
-                    let bookmarks = {};
+                        bookmarks[bookmarkTime] = textBox.value;
     
-                    await chrome.storage.sync.get([videoId]).then((result) => {
-                        if(result[videoId]) {
-                            bookmarks = result[videoId];
-                        }
-                    });
-                    
-                    bookmarks[bookmarkTime] = textBox.value;
-
-                    jsonFile = {};
-                    jsonFile[videoId] = bookmarks;
-                    await chrome.storage.sync.set(jsonFile);
+                        jsonFile = {};
+                        jsonFile[videoId] = bookmarks;
+                        await chrome.storage.sync.set(jsonFile);
+                    }
                 });
 
-                // const playButton = document.createElement("button");
                 const playButton = document.createElement("img");
-                // playButton.textContent = "Play";
-                playButton.src = "images/play.png";
+                playButton.src = "images/play.jpg";
                 playButton.style.width = "25px";
                 playButton.style.height = "25px";
                 playButton.addEventListener("click", playBookmark);
 
-                // const deleteButton = document.createElement("button");
                 const deleteButton = document.createElement("img");
-                // deleteButton.textContent = "Delete";
-                deleteButton.src = "images/delete.svg";
+                deleteButton.src = "images/delete.webp";
                 deleteButton.style.width = "25px";
                 deleteButton.style.height = "25px";
                 deleteButton.addEventListener("click", deleteBookmark);
